@@ -1,35 +1,161 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState, useEffect } from "react";
+
+const Login = ({ login }) => {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+
+  const submit = (ev) => {
+    ev.preventDefault();
+    login({ username, password });
+  };
+  return (
+    <form onSubmit={submit}>
+      <input
+        value={username}
+        onChange={(ev) => setUsername(ev.target.value)}
+        placeholder="username"
+      />
+      <input
+        value={password}
+        onChange={(ev) => setPassword(ev.target.value)}
+        placeholder="password"
+      />
+      <button>Login</button>
+    </form>
+  );
+};
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [skills, setSkills] = useState([]);
+  const [userSkills, setUserSkills] = useState([]);
+  const [auth, setAuth] = useState({});
+
+  useEffect(() => {
+    const token = window.localStorage.getItem("token");
+    if (token) {
+      attemptLoginWithToken();
+    }
+  }, []);
+
+  useEffect(() => {
+    const fetchSkills = async () => {
+      const response = await fetch("/api/skills");
+      const json = await response.json();
+      if (response.ok) {
+        setSkills(json);
+      } else {
+        console.log(json);
+      }
+    };
+    fetchSkills();
+  }, []);
+
+  useEffect(() => {
+    const fetchUserSkills = async () => {
+      const response = await fetch(`/api/users/${auth.id}/userSkills`);
+      const json = await response.json();
+      if (response.ok) {
+        setUserSkills(json);
+      } else {
+        console.log(json);
+      }
+    };
+    if (auth.id) {
+      fetchUserSkills();
+    } else {
+      setUserSkills([]);
+    }
+  }, [auth]);
+
+  const attemptLoginWithToken = async () => {
+    const token = window.localStorage.getItem("token");
+    const response = await fetch("/api/auth/me", {
+      headers: {
+        authorization: token,
+      },
+    });
+    const json = await response.json();
+    if (response.ok) {
+      setAuth(json);
+    } else {
+      window.localStorage.removeItem("token");
+    }
+  };
+
+  const login = async (credentials) => {
+    const response = await fetch("/api/auth/login", {
+      method: "POST",
+      body: JSON.stringify(credentials),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    const json = await response.json();
+    if (response.ok) {
+      window.localStorage.setItem("token", json.token);
+      attemptLoginWithToken();
+    }
+  };
+
+  const addUserSkill = async (skill_id) => {
+    const response = await fetch(`/api/users/${auth.id}/userSkills`, {
+      method: "POST",
+      body: JSON.stringify({ skill_id }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    const json = await response.json();
+    if (response.ok) {
+      setUserSkills([...userSkills, json]);
+    } else {
+      console.log(json);
+    }
+  };
+
+  const removeUserSkill = async (id) => {
+    const response = await fetch(`/api/users/${auth.id}/userSkills/${id}`, {
+      method: "DELETE",
+    });
+    setUserSkills(userSkills.filter((userSkill) => userSkill.id !== id));
+  };
+
+  const logout = () => {
+    window.localStorage.removeItem("token");
+    setAuth({});
+  };
 
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      {auth.id ? (
+        <button onClick={logout}>Logout {auth.username}</button>
+      ) : (
+        <Login login={login} />
+      )}
+      <ul>
+        {skills.map((skill) => {
+          const userSkill = userSkills.find(
+            (userSkill) => userSkill.skill_id === skill.id
+          );
+          return (
+            <li key={skill.id}>
+              {skill.name}
+              {auth.id && userSkill && (
+                <button onClick={() => removeUserSkill(userSkill.id)}>
+                  Remove User Skill
+                </button>
+              )}
+              {auth.id && !userSkill && (
+                <button onClick={() => addUserSkill(skill.id)}>
+                  Add User Skill
+                </button>
+              )}
+            </li>
+          );
+        })}
+      </ul>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
