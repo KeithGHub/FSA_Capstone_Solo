@@ -66,7 +66,9 @@ const authenticate = async ({ username, password }) => {
     error.status = 401;
     throw error;
   }
-  return { token: response.rows[0].id };
+  const token = await jwt.sign({ id: response.rows[0].id }, JWT);
+  console.log(token);
+  return { token };
 };
 
 const createUserSkill = async ({ user_id, skill_id }) => {
@@ -120,7 +122,18 @@ const findUserByToken = async (token) => {
     FROM users
     WHERE id = $1
   `;
-  const response = await client.query(SQL, [token]);
+
+  let id;
+  try {
+    const payload = await jwt.verify(token, JWT);
+    id = payload.id;
+  } catch (ex) {
+    const error = Error("not authorized from inside try");
+    error.status = 401;
+    throw error;
+  }
+
+  const response = await client.query(SQL, [id]);
   if (!response.rows.length) {
     const error = Error("not authorized");
     error.status = 401;
