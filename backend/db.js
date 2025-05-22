@@ -1,9 +1,11 @@
 const pg = require("pg");
 const client = new pg.Client(
-  process.env.DATABASE_URL || "postgres://localhost/"
+  process.env.DATABASE_URL || "postgres://localhost/fsacapstonesolo_db"
 );
 const uuid = require("uuid");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const JWT = process.env.JWT || "";
 
 const createTables = async () => {
   const SQL = `
@@ -51,12 +53,15 @@ const createSkill = async ({ name }) => {
 
 const authenticate = async ({ username, password }) => {
   const SQL = `
-    SELECT id
+    SELECT id, password
     FROM users
     WHERE username = $1
   `;
   const response = await client.query(SQL, [username]);
-  if (!response.rows.length) {
+  if (
+    !response.rows.length ||
+    (await bcrypt.compare(password, response.rows[0].password)) === false
+  ) {
     const error = Error("not authorized");
     error.status = 401;
     throw error;
