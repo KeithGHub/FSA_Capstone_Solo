@@ -1,3 +1,6 @@
+require("dotenv").config();
+console.log("PGPASSWORD:", process.env.PGPASSWORD);
+
 const {
   client,
   createTables,
@@ -76,14 +79,12 @@ app.delete("/api/users/:userId/userSkills/:id", async (req, res, next) => {
 
 app.post("/api/users/:id/userSkills", async (req, res, next) => {
   try {
-    res
-      .status(201)
-      .send(
-        await createUserSkill({
-          user_id: req.params.id,
-          skill_id: req.body.skill_id,
-        })
-      );
+    res.status(201).send(
+      await createUserSkill({
+        user_id: req.params.id,
+        skill_id: req.body.skill_id,
+      })
+    );
   } catch (ex) {
     next(ex);
   }
