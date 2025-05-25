@@ -3,7 +3,7 @@
 - create database
 
 ```
-createdb
+createdb fsacapstonesolo_db
 ```
 
 - install dependencies

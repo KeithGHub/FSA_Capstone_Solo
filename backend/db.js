@@ -5,7 +5,7 @@ const client = new pg.Client(
 const uuid = require("uuid");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const JWT = process.env.JWT || "";
+const JWT = process.env.JWT || "super-secret-key";
 
 const createTables = async () => {
   const SQL = `

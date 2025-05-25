@@ -37,6 +37,16 @@ const isLoggedIn = async (req, res, next) => {
   }
 };
 
+app.post("/api/auth/register", async (req, res, next) => {
+    try {
+        const { username, password } = req.body;
+        if (username, password) {
+            const errror = Error(' username and password required')
+            error.status = 400;
+            throw error;
+        }
+    })
+
 app.post("/api/auth/login", async (req, res, next) => {
   try {
     res.send(await authenticate(req.body));
