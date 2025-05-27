@@ -29,6 +29,8 @@ const RegisterForm = ({ register }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
+  console.log({ username, password });
+
   const submit = (ev) => {
     ev.preventDefault();
     register({ username, password });
@@ -125,7 +127,7 @@ function App() {
     }
   };
 
-  const Register = async (credentials) => {
+  const register = async (credentials) => {
     const response = await fetch("/api/auth/register", {
       method: "POST",
       body: JSON.stringify(credentials),
@@ -176,7 +178,7 @@ function App() {
         <>
           {showRegister ? (
             <>
-              <RegisterForm register={Register} />
+              <RegisterForm register={register} />
               <button onClick={() => setShowRegister(false)}>
                 Already have an account? Login
               </button>

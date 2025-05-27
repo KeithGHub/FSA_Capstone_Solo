@@ -40,7 +40,7 @@ const isLoggedIn = async (req, res, next) => {
 app.post("/api/auth/register", async (req, res, next) => {
   try {
     const { username, password } = req.body;
-    if ((username, password)) {
+    if (!username || !password) {
       const error = Error("username and password required");
       error.status = 400;
       throw error;
