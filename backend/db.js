@@ -30,14 +30,13 @@ const createTables = async () => {
 };
 
 const createUser = async ({ username, password }) => {
+  const hashed = await bcrypt.hash(password, 10);
   const SQL = `
-    INSERT INTO users(id, username, password) VALUES($1, $2, $3) RETURNING *
+    INSERT INTO users(id, username, password)
+    VALUES($1, $2, $3)
+    RETURNING id, username
   `;
-  const response = await client.query(SQL, [
-    uuid.v4(),
-    username,
-    await bcrypt.hash(password, 5),
-  ]);
+  const response = await client.query(SQL, [uuid.v4(), username, hashed]);
   return response.rows[0];
 };
 
