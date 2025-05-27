@@ -38,14 +38,18 @@ const isLoggedIn = async (req, res, next) => {
 };
 
 app.post("/api/auth/register", async (req, res, next) => {
-    try {
-        const { username, password } = req.body;
-        if (username, password) {
-            const errror = Error(' username and password required')
-            error.status = 400;
-            throw error;
-        }
-    })
+  try {
+    const { username, password } = req.body;
+    if ((username, password)) {
+      const error = Error("username and password required");
+      error.status = 400;
+      throw error;
+    }
+    res.status(201).send(await createUser({ username, password }));
+  } catch (ex) {
+    next(ex);
+  }
+});
 
 app.post("/api/auth/login", async (req, res, next) => {
   try {

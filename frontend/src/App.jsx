@@ -25,10 +25,53 @@ const Login = ({ login }) => {
   );
 };
 
+const RegisterForm = ({ register }) => {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+
+  const submit = (ev) => {
+    ev.preventDefault();
+    register({ username, password });
+  };
+
+  return (
+    <form onSubmit={submit}>
+      <input
+        value={username}
+        onChange={(ev) => setUsername(ev.target.value)}
+        placeholder="username"
+      />
+      <input
+        value={password}
+        onChange={(ev) => setPassword(ev.target.value)}
+        placeholder="password"
+        type="password"
+      />
+      <button>Register</button>
+    </form>
+  );
+};
+
 function App() {
   const [skills, setSkills] = useState([]);
   const [userSkills, setUserSkills] = useState([]);
   const [auth, setAuth] = useState({});
+  const [showRegister, setShowRegister] = useState(false);
+
+  const attemptLoginWithToken = async () => {
+    const token = window.localStorage.getItem("token");
+    const response = await fetch("/api/auth/me", {
+      headers: {
+        authorization: token,
+      },
+    });
+    const json = await response.json();
+    if (response.ok) {
+      setAuth(json);
+    } else {
+      window.localStorage.removeItem("token");
+    }
+  };
 
   useEffect(() => {
     const token = window.localStorage.getItem("token");
@@ -67,23 +110,23 @@ function App() {
     }
   }, [auth]);
 
-  const attemptLoginWithToken = async () => {
-    const token = window.localStorage.getItem("token");
-    const response = await fetch("/api/auth/me", {
+  const login = async (credentials) => {
+    const response = await fetch("/api/auth/login", {
+      method: "POST",
+      body: JSON.stringify(credentials),
       headers: {
-        authorization: token,
+        "Content-Type": "application/json",
       },
     });
     const json = await response.json();
     if (response.ok) {
-      setAuth(json);
-    } else {
-      window.localStorage.removeItem("token");
+      window.localStorage.setItem("token", json.token);
+      attemptLoginWithToken();
     }
   };
 
-  const login = async (credentials) => {
-    const response = await fetch("/api/auth/login", {
+  const Register = async (credentials) => {
+    const response = await fetch("/api/auth/register", {
       method: "POST",
       body: JSON.stringify(credentials),
       headers: {
@@ -130,7 +173,21 @@ function App() {
       {auth.id ? (
         <button onClick={logout}>Logout {auth.username}</button>
       ) : (
-        <Login login={login} />
+        <>
+          {showRegister ? (
+            <>
+              <RegisterForm register={Register} />
+              <button onClick={() => setShowRegister(false)}>
+                Already have an account? Login
+              </button>
+            </>
+          ) : (
+            <>
+              <Login login={login} />
+              <button onClick={() => setShowRegister(true)}>Register</button>
+            </>
+          )}
+        </>
       )}
       <ul>
         {skills.map((skill) => {
@@ -157,5 +214,4 @@ function App() {
     </>
   );
 }
-
 export default App;
