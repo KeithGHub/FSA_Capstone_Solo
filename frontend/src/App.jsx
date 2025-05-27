@@ -142,6 +142,7 @@ function App() {
   };
 
   const addUserSkill = async (skill_id) => {
+    const token = window.localStorage.getItem("token");
     const response = await fetch(`/api/users/${auth.id}/userSkills`, {
       method: "POST",
       body: JSON.stringify({ skill_id }),
